@@ -1,9 +1,16 @@
 #include <SoftwareSerial.h>
+#include <LiquidCrystal_I2C.h>
 
 //Create software serial object to communicate with SIM800L
 SoftwareSerial mySerial(3, 2); //SIM800L Tx & Rx is connected to Arduino #3 & #2
 
+LiquidCrystal_I2C lcd(0x3F, 16 ,2);
+
 String message;
+
+#define MQ2pin 1
+
+float sensorValue;
 
 void setup()
 {
@@ -33,10 +40,24 @@ void setup()
   // Initialize HTTP service
   mySerial.println("AT+HTTPINIT");
   updateSerial();
+
+  lcd.init();
+  lcd.clear();         
+  lcd.backlight();
+  lcd.setCursor(2,0);
+  lcd.print("Fireguard");
+  lcd.setCursor(2,1);
+  lcd.print("fire detection");
 }
 
 void loop()
 {
+ lcd.setCursor(0,0);
+ lcd.print("Detecting fire");
+ lcd.setCursor(1,0);
+ lcd.print("in market stalls");
+ lcd.clear();
+ sensorValue = analogRead(MQ2pin);
  if (mySerial.available())
   {
     while (mySerial.available())

@@ -1,14 +1,25 @@
 from ultralytics import YOLO
+from roboflow import Roboflow
 import cv2
 import math
 import serial, time
 import requests
+from sms import SMS
 
+
+apiKey = '6e24b51d9ead5c3ff131dd79605c5c2df5e4c163267ef36c6f002cfdfdd8c653'
+username = 'AfyaMum'
+recipients = ['+254710188479']
 
 # Start webcam
 cap = cv2.VideoCapture(0)
 cap.set(3, 1280)
 cap.set(4, 720)
+
+
+# rf = Roboflow(api_key="cTz33VmLPkUpxZzgwPw1")
+# project = rf.workspace().project("fire-smoke-detection-eozii")
+# model = project.version(1).model
 
 # Load YOLOv5s model
 model = YOLO('./model_weights/best.pt')
@@ -17,7 +28,7 @@ model = YOLO('./model_weights/best.pt')
 classNames = ["Class A Fire", "Class B Fire", "Class C Fire", "Class D Fire", "Class K Fire"]
 
 # Serial port
-ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=.1)
+# ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=.1)
 
 # get ip address of the device
 def get_ip():
@@ -45,16 +56,16 @@ latitude = location_info.get("latitude")
 longitude = location_info.get("longitude")
 
 # write to serial port
-def write_read(x):
-    ser.write(bytes(x, 'utf-8'))
-    time.sleep(0.05)
-    data = ser.readline()
-    return data
+# def write_read(x):
+#     ser.write(bytes(x, 'utf-8'))
+#     time.sleep(0.05)
+#     data = ser.readline()
+#     return data
 
 
 while True:
     success, img = cap.read()
-    results = model(img, stream=True)
+    results = model.predict(img, stream=True)
 
     # coordinates
     for r in results:
@@ -79,17 +90,17 @@ while True:
             # send data to arduino
             if confidence >= 0.5:
                 if cls == 0:
-                    write_read('Class A Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude))
+                    message = 'Class A Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude)
                 elif cls == 1:
-                    write_read('Class B Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude))
+                    message = 'Class B Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude)
                 elif cls == 2:
-                    write_read('Class C Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude))
+                    message = 'Class C Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude)
                 elif cls == 3:
-                    write_read('Class D Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude))
+                    message = 'Class D Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude)
                 elif cls == 4:
-                    write_read('Class K Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude))
+                    message = 'Class K Fire detected at {} latitude {} longitude {}'.format(city, latitude, longitude)
             else:
-                write_read('No Fire detected')
+                print("No Fire detected")
 
             # object details
             org = [x1, y1]
@@ -99,6 +110,7 @@ while True:
             thickness = 2
 
             cv2.putText(img, classNames[cls], org, font, fontScale, color, thickness)
+            # sms.send(message, recipients)
 
     cv2.imshow('Webcam', img)
     if cv2.waitKey(1) == ord('q'):

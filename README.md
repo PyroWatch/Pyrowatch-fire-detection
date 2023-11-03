@@ -19,3 +19,7 @@ This project is a fire detection system that uses YOLOv5, OpenCV, GSM, and Ardui
 11. Upload the `GSM_Stacuity.ino` file to your Arduino.
 12. Change your terminal back to the main directory.
 13. Run the `main.py` file using `python main.py`
+
+### Video Link
+
+Here's a link to the demo of the project: https://vimeo.com/880922337
